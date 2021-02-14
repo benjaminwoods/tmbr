@@ -1,0 +1,31 @@
+{
+  "name": "tmbr",
+  "version": "1.0.0",
+  "description": "Kill processes and process trees.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "docs": "documentation readme index.js --section=API"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benjaminwoods/tmbr.git"
+  },
+  "keywords": [
+    "kill",
+    "tree"
+  ],
+  "author": "Benjamin Woods",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/benjaminwoods/tmbr/issues"
+  },
+  "homepage": "https://github.com/benjaminwoods/tmbr#readme",
+  "dependencies": {
+    "ps-tree": "^1.2.0"
+  },
+  "devDependencies": {
+    "documentation": "^13.1.1",
+    "jest": "^26.6.3"
+  }
+}
