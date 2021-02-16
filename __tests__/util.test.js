@@ -1,6 +1,58 @@
 const tmbrUtil = require('../util')
 const { spawn } = require('child_process')
 
+describe('asyncKill', () => {
+  const testState = {};
+
+  beforeEach(() => {
+    testState.p = _process();
+    testState.data = {};
+    testState.data[testState.p.pid] = true;
+  });
+
+  afterEach(() => {
+    testState.p.kill('SIGKILL');
+  });
+
+  describe('Good inputs', () => {
+    test('PID only', async() => {
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+      await expect(tmbrUtil.asyncKill(
+        testState.p.pid
+      )).resolves.toEqual(testState.data);
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(false);
+    });
+
+    test('PID + signal', async() => {
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+      await expect(tmbrUtil.asyncKill(
+        testState.p.pid,
+        'SIGKILL'
+      )).resolves.toEqual(testState.data);
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(false);
+    });
+  });
+
+  describe('Bad inputs', () => {
+    test('Bad PID', async() => {
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+      await expect(tmbrUtil.asyncKill(
+        -1
+      )).resolves.toEqual({});
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+    });
+
+    test('Bad signal', async() => {
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+      await expect(tmbrUtil.asyncKill(
+        testState.p.pid,
+        'BADSIGNAL'
+      )).rejects.toThrow();
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+    });
+  });
+});
+
 describe('processExists', () => {
   const testState = {};
 
@@ -13,21 +65,21 @@ describe('processExists', () => {
   });
 
   test('PID exists', () => {
-    expect(process.kill(testState.p.pid,0)).toBe(true);
+    expect(process.kill(testState.p.pid ,0)).toBe(true);
     expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
-    expect(process.kill(testState.p.pid,0)).toBe(true);
+    expect(process.kill(testState.p.pid, 0)).toBe(true);
   });
 
-  test('PID does not exist', () => {
-    expect(process.kill(testState.p.pid,0)).toBe(true);
+  test('PID does not exist (1000000000)', () => {
+    expect(process.kill(testState.p.pid, 0)).toBe(true);
     expect(tmbrUtil.processExists(1000000000)).toBe(false);
-    expect(process.kill(testState.p.pid,0)).toBe(true);
+    expect(process.kill(testState.p.pid, 0)).toBe(true);
   });
 
   test('Bad PID', () => {
-    expect(process.kill(testState.p.pid,0)).toBe(true);
+    expect(process.kill(testState.p.pid, 0)).toBe(true);
     expect(() => tmbrUtil.processExists('invalid input')).toThrow();
-    expect(process.kill(testState.p.pid,0)).toBe(true);
+    expect(process.kill(testState.p.pid, 0)).toBe(true);
   });
 });
 
