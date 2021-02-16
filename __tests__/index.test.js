@@ -7,16 +7,7 @@ describe('One process (no shell)', () => {
     const testState = {};
 
     beforeEach(() => {
-      let cmd, args;
-      if (process.platform === 'win32') {
-        cmd = 'ping';
-        args = ['127.0.0.1', '-n', '31', '>', 'nul']
-      } else {
-        cmd = 'sleep';
-        args = ['30'];
-      }
-
-      testState.p = spawn(cmd, args);
+      testState.p = _process();
       testState.data = {};
       testState.data[testState.p.pid] = {};
     });
@@ -26,14 +17,82 @@ describe('One process (no shell)', () => {
     });
 
     test('PID', () => {
-      return tmbr(testState.p.pid).then(result => {
-        expect(result).toEqual(testState.data)
+      return tmbr(
+        testState.p.pid
+      ).then(result => {
+        expect(result).toEqual(testState.data);
       });
     });
 
     test('Process', () => {
-      return tmbr(testState.p).then(result => {
-        expect(result).toEqual(testState.data)
+      return tmbr(
+        testState.p
+      ).then(result => {
+        expect(result).toEqual(testState.data);
+      });
+    });
+  });
+
+  describe('Signal = SIGINT', () => {
+    const testState = {};
+
+    beforeEach(() => {
+      testState.p = _process();
+      testState.data = {};
+      testState.data[testState.p.pid] = {};
+    });
+
+    afterEach(() => {
+      testState.p.kill('SIGKILL');
+    });
+
+    test('PID', () => {
+      return tmbr(
+        testState.p.pid,
+        'SIGINT'
+      ).then(result => {
+        expect(result).toEqual(testState.data);
+      });
+    });
+
+    test('Process', () => {
+      return tmbr(
+        testState.p,
+        'SIGINT'
+      ).then(result => {
+        expect(result).toEqual(testState.data);
+      });
+    });
+  });
+
+  describe('Signal = SIGKILL', () => {
+    const testState = {};
+
+    beforeEach(() => {
+      testState.p = _process();
+      testState.data = {};
+      testState.data[testState.p.pid] = {};
+    });
+
+    afterEach(() => {
+      testState.p.kill('SIGKILL');
+    });
+
+    test('PID', () => {
+      return tmbr(
+        testState.p.pid,
+        'SIGKILL'
+      ).then(result => {
+        expect(result).toEqual(testState.data);
+      });
+    });
+
+    test('Process', () => {
+      return tmbr(
+        testState.p,
+        'SIGKILL'
+      ).then(result => {
+        expect(result).toEqual(testState.data);
       });
     });
   });
@@ -44,19 +103,7 @@ describe('One process (in shell)', () => {
     const testState = {};
 
     beforeEach(() => {
-      let cmd, args;
-      if (process.platform === 'win32') {
-        cmd = 'ping';
-        args = ['127.0.0.1', '-n', '31', '>', 'nul'];
-      } else {
-        cmd = 'sleep';
-        args = ['30'];
-      }
-
-      testState.p = spawn(
-        cmd, args,
-        options={shell:true}
-      );
+      testState.p = _process(shell=true);
       testState.data = {};
 
       return new Promise(resolve => {
@@ -75,15 +122,35 @@ describe('One process (in shell)', () => {
     });
 
     test('PID', () => {
-      return tmbr(testState.p.pid).then(result => {
-        expect(result).toEqual(testState.data)
+      return tmbr(
+        testState.p.pid
+      ).then(result => {
+        expect(result).toEqual(testState.data);
       });
     });
 
     test('Process', () => {
-      return tmbr(testState.p).then(result => {
-        expect(result).toEqual(testState.data)
+      return tmbr(
+        testState.p
+      ).then(result => {
+        expect(result).toEqual(testState.data);
       });
     });
   });
 });
+
+const _process = (shell=false) => {
+  let cmd, args;
+  if (process.platform === 'win32') {
+    cmd = 'ping';
+    args = ['127.0.0.1', '-n', '31'];
+  } else {
+    cmd = 'sleep';
+    args = ['30'];
+  }
+
+  return spawn(
+    cmd, args,
+    options={shell:shell}
+  );
+}
