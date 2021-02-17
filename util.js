@@ -34,6 +34,36 @@
  };
  const asyncKill = module.exports.asyncKill;
 
+ /**
+  * Kill process and check for PID afterwards.
+  *
+  * @param {number} pid - PID.
+  * @param {string} [signal='SIGTERM'] - Kill signal.
+  * @param {Object} [options={}] - Additional options.
+  * @param {boolean} options.recursive - Recursive kill.
+  * @returns {Promise<Object>} Resolves if PID kill was successful, rejects otherwise.
+  */
+ module.exports.killAndCheck = (pid, signal='SIGTERM', options={}) => {
+   return asyncKill(
+     pid, signal, options
+   ).then(
+     result => {
+       // If kill attempt did not error, lookup the PID
+       if (processExists(pid)) {
+         throw('PID failed to be killed.');
+       }
+
+       // Otherwise, return result from asyncKill
+       return result;
+     },
+     // Otherwise, error
+     msg => {
+       throw(`Error terminating PID ${pid}.`)
+     }
+   );
+ };
+ const killAndCheck = module.exports.killAndCheck;
+
 /**
  * Process with PID exists.
  *
@@ -48,7 +78,7 @@ module.exports.processExists = (pid) => {
       throw 1;
     }
   } catch (err) {
-    throw('Bad input. pid must be an integer > 0.')
+    throw('Bad input. pid must be an integer > 0.');
   }
 
   let flag = true;

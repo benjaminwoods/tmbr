@@ -53,6 +53,58 @@ describe('asyncKill', () => {
   });
 });
 
+describe('killAndCheck', () => {
+  const testState = {};
+
+  beforeEach(() => {
+    testState.p = _process();
+    testState.data = {};
+    testState.data[testState.p.pid] = true;
+  });
+
+  afterEach(() => {
+    testState.p.kill('SIGKILL');
+  });
+
+  describe('Good inputs, responsive process', () => {
+    test('PID only', async() => {
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+      await expect(tmbrUtil.killAndCheck(
+        testState.p.pid
+      )).resolves.toEqual(testState.data);
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(false);
+    });
+
+    test('PID + signal', async() => {
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+      await expect(tmbrUtil.killAndCheck(
+        testState.p.pid,
+        'SIGKILL'
+      )).resolves.toEqual(testState.data);
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(false);
+    });
+  });
+
+  describe('Bad inputs', () => {
+    test('Bad PID', async() => {
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+      await expect(tmbrUtil.killAndCheck(
+        -1
+      )).resolves.toEqual({});
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+    });
+
+    test('Bad signal', async() => {
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+      await expect(tmbrUtil.killAndCheck(
+        testState.p.pid,
+        'BADSIGNAL'
+      )).rejects.toBe(`Error terminating PID ${testState.p.pid}.`);
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+    });
+  });
+});
+
 describe('processExists', () => {
   const testState = {};
 
