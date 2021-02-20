@@ -64,6 +64,26 @@
  };
  const killAndCheck = module.exports.killAndCheck;
 
+ /**
+  * Wait lag milliseconds, then run killAndCheck.
+  *
+  * @param {number} pid - PID.
+  * @param {string} [signal='SIGTERM'] - Kill signal.
+  * @param {Object} [options={}] - Additional options.
+  * @param {boolean} options.recursive - Recursive kill.
+  * @returns {Promise} Resolves if PID kill was successful, rejects otherwise.
+  */
+ module.exports.lagKill = (pid, signal='SIGTERM', options={}, lag=0) => {
+   return new Promise ((resolve, reject) => {
+     setTimeout(() => {
+       killAndCheck(
+         pid, signal, options
+       ).then(resolve, reject);
+     }, lag);
+   });
+ };
+ const lagKill = module.exports.lagKill;
+
 /**
  * Process with PID exists.
  *

@@ -105,6 +105,79 @@ describe('killAndCheck', () => {
   });
 });
 
+describe('lagKill', () => {
+  const testState = {};
+
+  beforeEach(() => {
+    testState.p = _process();
+    testState.data = {};
+    testState.data[testState.p.pid] = true;
+  });
+
+  afterEach(() => {
+    testState.p.kill('SIGKILL');
+  });
+
+  // Allow 500 milliseconds to process the resolved Promise
+  let lag = 500;
+
+  describe('Good inputs, no lag', () => {
+    test('PID only', () => {
+      return new Promise(async(resolve, reject) => {
+        expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+        let result = tmbrUtil.lagKill(
+          testState.p.pid
+        );
+
+        // Wait 500 milliseconds
+        setInterval(reject, 500);
+
+        // Result should resolve in time
+        await expect(result).resolves.toEqual(testState.data);
+        expect(tmbrUtil.processExists(testState.p.pid)).toBe(false);
+        resolve();
+      })
+    });
+
+    test('PID + signal', () => {
+      return new Promise(async(resolve, reject) => {
+        expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+        let result = tmbrUtil.lagKill(
+          testState.p.pid,
+          'SIGKILL'
+        );
+
+        // Wait 500 milliseconds
+        setInterval(reject, 500);
+
+        // Result should resolve in time
+        await expect(result).resolves.toEqual(testState.data);
+        expect(tmbrUtil.processExists(testState.p.pid)).toBe(false);
+        resolve();
+      });
+    });
+  });
+
+  describe('Bad inputs', () => {
+    test('Bad PID', async() => {
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+      await expect(tmbrUtil.lagKill(
+        -1
+      )).resolves.toEqual({});
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+    });
+
+    test('Bad signal', async() => {
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+      await expect(tmbrUtil.lagKill(
+        testState.p.pid,
+        'BADSIGNAL'
+      )).rejects.toBe(`Error terminating PID ${testState.p.pid}.`);
+      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+    });
+  });
+});
+
 describe('processExists', () => {
   const testState = {};
 
