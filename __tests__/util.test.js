@@ -208,20 +208,6 @@ describe('processExists', () => {
   });
 });
 
-const _process = (shell=false) => {
-  let cmd, args;
-  if (process.platform === 'win32') {
-    cmd = 'ping';
-    args = ['127.0.0.1', '-n', '31'];
-  } else if (process.platform == 'linux') {
-    cmd = './__tests__/hang.sh';
-    args = [];
-  } else {
-    throw('process.platform must be "win32" or "linux".')
-  }
-
-  return spawn(
-    cmd, args,
-    options={shell:shell}
-  );
-}
+const _process = () => {
+  return spawn('node');
+};

@@ -98,8 +98,8 @@ describe('One process (in shell)', () => {
 
 const _process = () => {
   return spawn('node');
-}
+};
 
 const _processInShell = () => {
   return spawn('node',{shell:true});
-}
+};
