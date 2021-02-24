@@ -16,7 +16,7 @@ describe('One process (no shell)', () => {
       testState.p.kill('SIGKILL');
     });
 
-    test('PID', () => {
+    test('Kill by PID', () => {
       return tmbr(
         testState.p.pid
       ).then(result => {
@@ -24,75 +24,19 @@ describe('One process (no shell)', () => {
       });
     });
 
-    test('Process', () => {
+    test('Kill by process', () => {
       return tmbr(
         testState.p
       ).then(result => {
         expect(result).toEqual(testState.data);
       });
     });
-  });
 
-  describe('Signal = SIGINT', () => {
-    const testState = {};
-
-    beforeEach(() => {
-      testState.p = _process();
-      testState.data = {};
-      testState.data[testState.p.pid] = {};
-    });
-
-    afterEach(() => {
-      testState.p.kill('SIGKILL');
-    });
-
-    test('PID', () => {
+    test('All processes killed', () => {
       return tmbr(
-        testState.p.pid,
-        'SIGINT'
+        testState.p
       ).then(result => {
-        expect(result).toEqual(testState.data);
-      });
-    });
-
-    test('Process', () => {
-      return tmbr(
-        testState.p,
-        'SIGINT'
-      ).then(result => {
-        expect(result).toEqual(testState.data);
-      });
-    });
-  });
-
-  describe('Signal = SIGKILL', () => {
-    const testState = {};
-
-    beforeEach(() => {
-      testState.p = _process();
-      testState.data = {};
-      testState.data[testState.p.pid] = {};
-    });
-
-    afterEach(() => {
-      testState.p.kill('SIGKILL');
-    });
-
-    test('PID', () => {
-      return tmbr(
-        testState.p.pid,
-        'SIGKILL'
-      ).then(result => {
-        expect(result).toEqual(testState.data);
-      });
-    });
-
-    test('Process', () => {
-      return tmbr(
-        testState.p,
-        'SIGKILL'
-      ).then(result => {
-        expect(result).toEqual(testState.data);
+        expect(() => process.kill(testState.p.pid, 0)).toThrow();
       });
     });
   });
@@ -104,15 +48,15 @@ describe('One process (in shell)', () => {
 
     beforeEach(() => {
       testState.p = _process(shell=true);
-      testState.data = {};
 
+      testState.data = {};
       return new Promise(resolve => {
         psTree(testState.p.pid, (err, children) => {
           resolve(children.map(c => c.PID));
         });
       }).then(result => {
         testState.data[testState.p.pid] = Object.fromEntries(
-          result.map(i => [i, true])
+          result.map(i => [i, {}])
         )
       });
     });
@@ -121,7 +65,7 @@ describe('One process (in shell)', () => {
       testState.p.kill('SIGKILL');
     });
 
-    test('PID', () => {
+    test('Kill parent by PID', () => {
       return tmbr(
         testState.p.pid
       ).then(result => {
@@ -129,28 +73,33 @@ describe('One process (in shell)', () => {
       });
     });
 
-    test('Process', () => {
+    test('Kill parent by process', () => {
       return tmbr(
         testState.p
       ).then(result => {
         expect(result).toEqual(testState.data);
       });
     });
+
+    // Check recursive kill
+
+    test('All processes killed', () => {
+      return tmbr(
+        testState.p
+      ).then(result => {
+        expect(() => process.kill(testState.p.pid, 0)).toThrow();
+        for (let pid of Object.keys(testState.data)) {
+          expect(() => process.kill(pid, 0)).toThrow();
+        }
+      });
+    });
   });
 });
 
-const _process = (shell=false) => {
-  let cmd, args;
-  if (process.platform === 'win32') {
-    cmd = 'ping';
-    args = ['127.0.0.1', '-n', '31'];
-  } else {
-    cmd = 'sleep';
-    args = ['30'];
-  }
+const _process = () => {
+  return spawn('node');
+}
 
-  return spawn(
-    cmd, args,
-    options={shell:shell}
-  );
+const _processInShell = () => {
+  return spawn('node',{shell:true});
 }
