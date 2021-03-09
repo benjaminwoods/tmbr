@@ -2,7 +2,7 @@
 
 Kill processes and process trees.
 
-![Travis CI Status](https://travis-ci.com/benjaminwoods/tmbr.svg?branch=alpha)
+![Travis CI Status](https://travis-ci.com/benjaminwoods/tmbr.svg?branch=main)
 
 Simple use cases:
 
