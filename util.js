@@ -11,26 +11,49 @@
   * @param {Object} [options={}] - Additional options.
   * @param {boolean} options.recursive - Recursive kill.
   * @returns {Promise<Object>} Resolves if PID kill did not error, rejects otherwise.
+  * @throws If pid is invalid.
   */
- module.exports.asyncKill = async(pid, signal='SIGTERM', options={}) => {
-   const tmbr = require('.');
+ module.exports.asyncKill = (pid, signal='SIGTERM', options={}) => {
+   // If the pid is not valid, throw here
+   processExists(pid)
 
-   if (options.recursive) {
-     return await tmbr(pid, signal, options);
-   } else {
-     let obj = {};
+   return new Promise((resolve, reject) => {
+     if (options.recursive) {
+       const tmbr = require('.');
 
-     try {
-       obj[pid] = process.kill(pid, signal);
-     } catch (err) {
-       if (err.code !== 'ESRCH') {
-         // Error if not ESRCH
-         throw(err);
+       tmbr(pid, signal, options).then(
+         resolve, reject
+       );
+     } else {
+       let obj = {};
+
+       try {
+         obj[pid] = process.kill(pid, signal);
+
+         const processCheck = () => {
+           if (processExists(pid)) {
+             // If the process still exists,
+             // recursively call with 50ms lag
+             setTimeout(processCheck, 50);
+           } else {
+             resolve(obj);
+           }
+         }
+
+         // Fire
+         setTimeout(processCheck, 50)
+       } catch (err) {
+         if (err.code !== 'ESRCH') {
+           // Error if not ESRCH
+           reject(err);
+         } else {
+           // Process did not exist
+           // (silently resolves)
+           resolve(obj);
+         }
        }
      }
-
-     return obj;
-   }
+   });
  };
  const asyncKill = module.exports.asyncKill;
 
@@ -42,12 +65,16 @@
   * @param {Object} [options={}] - Additional options.
   * @param {boolean} options.recursive - Recursive kill.
   * @returns {Promise<Object>} Resolves if PID kill was successful, rejects otherwise.
+  * @throws If pid is invalid.
   */
  module.exports.killAndCheck = (pid, signal='SIGTERM', options={}) => {
+   // If the pid is not valid, throw here
+   processExists(pid)
+
    return asyncKill(
      pid, signal, options
    ).then(
-     result => {
+     async(result) => {
        // If kill attempt did not error, lookup the PID
        if (processExists(pid)) {
          throw('PID failed to be killed.');
@@ -57,7 +84,7 @@
        return result;
      },
      // Otherwise, error
-     msg => {
+     async(msg) => {
        throw(`Error terminating PID ${pid}.`)
      }
    );
@@ -72,8 +99,12 @@
   * @param {Object} [options={}] - Additional options.
   * @param {boolean} options.recursive - Recursive kill.
   * @returns {Promise} Resolves if PID kill was successful, rejects otherwise.
+  * @throws If pid is invalid.
   */
  module.exports.lagKill = (pid, signal='SIGTERM', options={}, lag=0) => {
+   // If the pid is not valid, throw here
+   processExists(pid)
+
    return new Promise ((resolve, reject) => {
      setTimeout(() => {
        killAndCheck(
@@ -95,6 +126,8 @@ module.exports.processExists = (pid) => {
     if (typeof pid !== 'number') {
       throw 1;
     } else if (!Number.isInteger(pid)) {
+      throw 1;
+    } else if (pid <= 0) {
       throw 1;
     }
   } catch (err) {

@@ -23,6 +23,13 @@ describe('asyncKill', () => {
       expect(tmbrUtil.processExists(testState.p.pid)).toBe(false);
     });
 
+    test('PID does not exist', async() => {
+      expect(tmbrUtil.processExists(100000000)).toBe(false);
+      await expect(tmbrUtil.asyncKill(
+        100000000
+      )).resolves.toEqual({});
+    })
+
     test('PID + signal', async() => {
       expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
       await expect(tmbrUtil.asyncKill(
@@ -34,12 +41,16 @@ describe('asyncKill', () => {
   });
 
   describe('Bad inputs', () => {
-    test('Bad PID', async() => {
-      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
-      await expect(tmbrUtil.asyncKill(
-        -1
-      )).resolves.toEqual({});
-      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+    test('Negative PID', () => {
+      expect(() => {
+        tmbrUtil.asyncKill(-100);
+      }).toThrow();
+    });
+
+    test('Bad PID', () => {
+      expect(() => {
+        tmbrUtil.asyncKill(4.1);
+      }).toThrow();
     });
 
     test('Bad signal', async() => {
@@ -75,6 +86,13 @@ describe('killAndCheck', () => {
       expect(tmbrUtil.processExists(testState.p.pid)).toBe(false);
     });
 
+    test('PID does not exist', async() => {
+      expect(tmbrUtil.processExists(100000000)).toBe(false);
+      await expect(tmbrUtil.killAndCheck(
+        100000000
+      )).resolves.toEqual({});
+    })
+
     test('PID + signal', async() => {
       expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
       await expect(tmbrUtil.killAndCheck(
@@ -86,12 +104,16 @@ describe('killAndCheck', () => {
   });
 
   describe('Bad inputs', () => {
-    test('Bad PID', async() => {
-      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
-      await expect(tmbrUtil.killAndCheck(
-        -1
-      )).resolves.toEqual({});
-      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+    test('Negative PID', () => {
+      expect(() => {
+        tmbrUtil.killAndCheck(-100);
+      }).toThrow();
+    });
+
+    test('Bad PID', () => {
+      expect(() => {
+        tmbrUtil.killAndCheck(4.1);
+      }).toThrow();
     });
 
     test('Bad signal', async() => {
@@ -159,12 +181,16 @@ describe('lagKill', () => {
   });
 
   describe('Bad inputs', () => {
-    test('Bad PID', async() => {
-      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
-      await expect(tmbrUtil.lagKill(
-        -1
-      )).resolves.toEqual({});
-      expect(tmbrUtil.processExists(testState.p.pid)).toBe(true);
+    test('Negative PID', () => {
+      expect(() => {
+        tmbrUtil.lagKill(-100);
+      }).toThrow();
+    });
+
+    test('Bad PID', () => {
+      expect(() => {
+        tmbrUtil.lagKill(4.1);
+      }).toThrow();
     });
 
     test('Bad signal', async() => {
