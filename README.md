@@ -8,10 +8,19 @@ Kill processes and process trees.
 
 #### Table of Contents
 
--   [index](#index)
+-   [tmbr](#tmbr)
     -   [Parameters](#parameters)
+-   [tmbr/util](#tmbrutil)
+    -   [asyncKill](#asynckill)
+        -   [Parameters](#parameters-1)
+    -   [killAndCheck](#killandcheck)
+        -   [Parameters](#parameters-2)
+    -   [lagKill](#lagkill)
+        -   [Parameters](#parameters-3)
+    -   [processExists](#processexists)
+        -   [Parameters](#parameters-4)
 
-### index
+### tmbr
 
 Asynchronously kill processes and process trees.
 
@@ -20,7 +29,61 @@ Asynchronously kill processes and process trees.
 -   `p` **(child_process.ChildProcess | [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number))** Child process or PID.
 -   `signal` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** Kill signal. (optional, default `'SIGTERM'`)
 -   `options` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** Additional options. (optional, default `{}`)
-    -   `options.timeout` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** Set a timeout for each kill (milliseconds)
+    -   `options.retries` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** How many times to retry killing each process.
     -   `options.recursive` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Recursive kill.
 
 Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)>** Promise with information about the process tree.
+
+### tmbr/util
+
+#### asyncKill
+
+Asynchronous kill.
+
+Silently resolves if ESRCH is returned from process.kill(pid, signal).
+
+##### Parameters
+
+-   `pid` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** PID.
+-   `signal` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** Kill signal. (optional, default `'SIGTERM'`)
+-   `options` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** Additional options. (optional, default `{}`)
+    -   `options.recursive` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Recursive kill.
+
+Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)>** Resolves if PID kill did not error, rejects otherwise.
+
+#### killAndCheck
+
+Kill process and check for PID afterwards.
+
+##### Parameters
+
+-   `pid` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** PID.
+-   `signal` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** Kill signal. (optional, default `'SIGTERM'`)
+-   `options` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** Additional options. (optional, default `{}`)
+    -   `options.recursive` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Recursive kill.
+
+Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)>** Resolves if PID kill was successful, rejects otherwise.
+
+#### lagKill
+
+Wait lag milliseconds, then run killAndCheck.
+
+##### Parameters
+
+-   `pid` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** PID.
+-   `signal` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** Kill signal. (optional, default `'SIGTERM'`)
+-   `options` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** Additional options. (optional, default `{}`)
+    -   `options.recursive` **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Recursive kill.
+-   `lag`   (optional, default `0`)
+
+Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)** Resolves if PID kill was successful, rejects otherwise.
+
+#### processExists
+
+Process with PID exists.
+
+##### Parameters
+
+-   `pid` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** PID.
+
+Returns **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** True if the PID exists, false otherwise.
